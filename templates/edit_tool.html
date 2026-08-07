@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>تعديل الأداة</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #0F0E1A; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background: #1A1735; padding: 40px; border-radius: 10px; width: 500px; max-width: 100%; }
+        h1 { text-align: center; margin-bottom: 30px; color: #FFD700; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #0F0E1A; color: white; }
+        textarea { min-height: 100px; resize: vertical; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #FFD700; color: #0F0E1A; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #F0A500; }
+        .link { text-align: center; margin-top: 15px; color: #A8A8C8; }
+        .link a { color: #FFD700; text-decoration: none; }
+        .flash { padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
+        .flash.success { background: #00C897; color: white; }
+        .flash.error { background: #FF6B6B; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✏️ تعديل الأداة</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        <form method="POST">
+            <input type="text" name="name" value="{{ tool.name }}" required>
+            <textarea name="description" required>{{ tool.description }}</textarea>
+            <input type="number" name="price" step="0.01" min="0.01" value="{{ tool.price }}" required>
+            <select name="category">
+                <option value="تحليل" {% if tool.category == 'تحليل' %}selected{% endif %}>تحليل</option>
+                <option value="أتمتة" {% if tool.category == 'أتمتة' %}selected{% endif %}>أتمتة</option>
+                <option value="استخراج" {% if tool.category == 'استخراج' %}selected{% endif %}>استخراج</option>
+                <option value="ذكاء اصطناعي" {% if tool.category == 'ذكاء اصطناعي' %}selected{% endif %}>ذكاء اصطناعي</option>
+                <option value="أمن" {% if tool.category == 'أمن' %}selected{% endif %}>أمن</option>
+                <option value="other" {% if tool.category == 'other' %}selected{% endif %}>أخرى</option>
+            </select>
+            <h3 style="margin-top:20px;">🏷️ كوبون خصم</h3>
+            <input type="number" name="discount" step="0.1" min="0" max="100" value="{{ tool.discount_percent or 0 }}" placeholder="نسبة الخصم (مثال: 20)">
+            <input type="number" name="discount_days" min="0" value="0" placeholder="عدد الأيام (مثال: 7)">
+            <small style="color:#666;">اترك 0 لإلغاء الخصم</small>
+            <button type="submit" class="btn" style="margin-top:20px;">💾 حفظ التغييرات</button>
+        </form>
+        <div class="link"><a href="/seller/dashboard">← العودة للوحة</a></div>
+    </div>
+</body>
+</html>

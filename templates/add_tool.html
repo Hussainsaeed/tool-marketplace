@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>إضافة أداة</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #0F0E1A; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background: #1A1735; padding: 40px; border-radius: 10px; width: 500px; max-width: 100%; }
+        h1 { text-align: center; margin-bottom: 30px; color: #FFD700; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #0F0E1A; color: white; }
+        textarea { min-height: 100px; resize: vertical; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #FFD700; color: #0F0E1A; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #F0A500; }
+        .link { text-align: center; margin-top: 15px; color: #A8A8C8; }
+        .link a { color: #FFD700; text-decoration: none; }
+        .flash { padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
+        .flash.success { background: #00C897; color: white; }
+        .flash.error { background: #FF6B6B; color: white; }
+        .file-upload { border: 2px dashed #333; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; margin: 10px 0; }
+        .file-upload:hover { border-color: #FFD700; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>➕ إضافة أداة جديدة</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        <form method="POST" enctype="multipart/form-data">
+            <input type="text" name="name" placeholder="اسم الأداة" required>
+            <textarea name="description" placeholder="وصف الأداة" required></textarea>
+            <input type="number" name="price" step="0.01" min="0.01" placeholder="السعر ($)" required>
+            <select name="category">
+                <option value="تحليل">تحليل</option>
+                <option value="أتمتة">أتمتة</option>
+                <option value="استخراج">استخراج</option>
+                <option value="ذكاء اصطناعي">ذكاء اصطناعي</option>
+                <option value="أمن">أمن</option>
+                <option value="other">أخرى</option>
+            </select>
+            <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                <p>📁 اضغط لاختيار ملف</p>
+                <input type="file" name="file" id="fileInput" style="display:none;">
+            </div>
+            <button type="submit" class="btn">رفع الأداة</button>
+        </form>
+        <div class="link"><a href="/seller/dashboard">← العودة للوحة</a></div>
+    </div>
+</body>
+</html>

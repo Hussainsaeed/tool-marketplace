@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملف الشخصي</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #0F0E1A; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background: #1A1735; padding: 40px; border-radius: 10px; max-width: 600px; width: 100%; }
+        h1 { text-align: center; margin-bottom: 30px; color: #FFD700; }
+        label { display: block; margin: 15px 0 5px; color: #A8A8C8; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #0F0E1A; color: white; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #FFD700; color: #0F0E1A; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #F0A500; }
+        .info-box { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin: 8px 0; }
+        .info-box strong { color: #FFD700; }
+        .flash { padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
+        .flash.success { background: #00C897; color: white; }
+        .flash.error { background: #FF6B6B; color: white; }
+        .link { text-align: center; margin-top: 15px; color: #A8A8C8; }
+        .link a { color: #FFD700; text-decoration: none; }
+        small { color: #666; font-size: 12px; display: block; margin-top: 5px; }
+        .notification-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; margin: 5px 0; border-right: 3px solid #FFD700; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👤 الملف الشخصي</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        <div class="info-box"><strong>اسم المستخدم:</strong> {{ current_user.username }}</div>
+        <div class="info-box"><strong>البريد الإلكتروني:</strong> {{ current_user.email }}</div>
+        <div class="info-box"><strong>الدور:</strong> {{ current_user.role }}</div>
+        {% if current_user.role == 'seller' %}
+            <div class="info-box"><strong>إجمالي المبيعات:</strong> {{ current_user.total_sales }}</div>
+            <div class="info-box"><strong>إجمالي الأرباح:</strong> ${{ "%.2f"|format(current_user.total_earnings) }}</div>
+            <div class="info-box"><strong>التقييم:</strong> ⭐ {{ "%.1f"|format(current_user.rating) }}</div>
+        {% endif %}
+        
+        <h3 style="margin-top:20px;">📬 الإشعارات</h3>
+        {% for notif in notifications %}
+            <div class="notification-item">
+                <strong>{{ notif.title }}</strong><br>
+                {{ notif.message }}<br>
+                <small style="color:#666;">{{ notif.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                <a href="/notifications/mark-read/{{ notif.id }}" style="color:#FFD700;font-size:12px;">تحديد كمقروء</a>
+            </div>
+        {% else %}
+            <p style="color:#666;">لا توجد إشعارات جديدة</p>
+        {% endfor %}
+        
+        <hr style="border-color:#333; margin: 20px 0;">
+        <form method="POST" action="{{ url_for('profile_update') }}">
+            <label>الاسم الكامل (اختياري)</label>
+            <input type="text" name="full_name" value="{{ current_user.full_name or '' }}" placeholder="الاسم الكامل">
+            <label>رقم الهاتف (اختياري)</label>
+            <input type="text" name="phone" value="{{ current_user.phone or '' }}" placeholder="رقم الهاتف">
+            {% if current_user.role == 'seller' %}
+                <label>🔑 عنوان محفظة Trust Wallet</label>
+                <input type="text" name="trust_wallet_address" value="{{ current_user.trust_wallet_address or '' }}" placeholder="0x...">
+                <small>أدخل عنوان محفظتك لاستقبال المدفوعات</small>
+            {% endif %}
+            <button type="submit" class="btn" style="margin-top:20px;">💾 حفظ التغييرات</button>
+        </form>
+        <div class="link"><a href="/">← العودة للسوق</a></div>
+        <div class="link"><a href="/logout" style="color:#FF6B6B;">تسجيل الخروج</a></div>
+    </div>
+</body>
+</html>

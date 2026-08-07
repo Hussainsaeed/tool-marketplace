@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ tool.name }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #0F0E1A; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background: #1A1735; padding: 40px; border-radius: 10px; max-width: 700px; width: 100%; }
+        h1 { color: #FFD700; }
+        .price { font-size: 32px; color: #FFD700; margin: 16px 0; }
+        .old-price { color: #666; font-size: 20px; text-decoration: line-through; }
+        .description { color: #A8A8C8; line-height: 1.8; }
+        .btn { padding: 12px 30px; border: none; border-radius: 8px; background: #FFD700; color: #0F0E1A; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn:hover { background: #F0A500; }
+        .flash { padding: 10px; border-radius: 8px; margin: 10px 0; }
+        .flash.success { background: #00C897; color: white; }
+        .flash.error { background: #FF6B6B; color: white; }
+        .flash.warning { background: #FFA500; color: white; }
+        .seller-info { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .review-item { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; margin: 10px 0; border-right: 3px solid #FFD700; }
+        .stars { color: #FFD700; font-size: 20px; }
+        .sale-badge { background: #FF6B6B; color: white; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" style="color:#A8A8C8;text-decoration:none;">← العودة للسوق</a>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message|safe }}</div>
+            {% endfor %}
+        {% endwith %}
+        
+        {% if tool.is_on_sale %}
+            <div class="sale-badge">🔥 خصم {{ tool.discount_percent|int }}%</div>
+        {% endif %}
+        
+        <h1>{{ tool.name }}</h1>
+        
+        <div class="seller-info">
+            <strong>👤 البائع:</strong> <a href="/seller/{{ tool.seller.id }}" style="color:#FFD700;text-decoration:none;">{{ tool.seller.username }}</a>
+            {% if tool.seller.rating > 0 %}
+                ⭐ {{ "%.1f"|format(tool.seller.rating) }}
+            {% endif %}
+            <br>
+            <strong>🔑 عنوان Trust Wallet:</strong> 
+            {{ tool.seller.trust_wallet_address or 'لم يضف عنواناً بعد' }}
+            <br>
+            <strong>📅 تاريخ النشر:</strong> {{ tool.created_at.strftime('%Y-%m-%d') }}
+        </div>
+        
+        <div class="price">
+            {% if tool.is_on_sale %}
+                <span class="old-price">${{ "%.2f"|format(tool.price) }}</span>
+                ${{ "%.2f"|format(tool.final_price) }}
+            {% else %}
+                ${{ "%.2f"|format(tool.price) }}
+            {% endif %}
+        </div>
+        
+        <div class="description">
+            <h3>📝 الوصف</h3>
+            <p>{{ tool.description }}</p>
+        </div>
+        
+        <div style="margin:20px 0;">
+            <span style="background:#1A1735;padding:4px 12px;border-radius:20px;border:1px solid #333;">📂 {{ tool.category }}</span>
+            <span style="background:#1A1735;padding:4px 12px;border-radius:20px;border:1px solid #333;">👁️ {{ tool.views }} مشاهدة</span>
+            <span style="background:#1A1735;padding:4px 12px;border-radius:20px;border:1px solid #333;">🛒 {{ tool.sales_count }} مبيعات</span>
+            <span style="background:#1A1735;padding:4px 12px;border-radius:20px;border:1px solid #333;">{{ tool.status }}</span>
+        </div>
+        
+        <div style="margin-top:30px;">
+            {% if current_user.is_authenticated and current_user.role == 'buyer' and tool.status == 'listed' %}
+                <a href="/buy/{{ tool.id }}" class="btn" onclick="return confirm('هل أنت متأكد من شراء هذه الأداة؟');">🛒 شراء الآن</a>
+            {% elif current_user.is_authenticated and current_user.role == 'seller' %}
+                <p style="color:#A8A8C8;">🔒 البائعون لا يستطيعون الشراء</p>
+            {% else %}
+                <a href="/login" class="btn">🔑 سجل الدخول للشراء</a>
+            {% endif %}
+        </div>
+        
+        <div style="margin-top:30px;">
+            <h3>⭐ التقييمات ({{ avg_rating }})</h3>
+            <div class="stars">
+                {% for i in range(5) %}
+                    {% if i < avg_rating|int %}
+                        ★
+                    {% else %}
+                        ☆
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% if current_user.is_authenticated and current_user.role == 'buyer' %}
+                {% for transaction in tool.seller.transactions %}
+                    {% if transaction.buyer_id == current_user.id and transaction.tool_id == tool.id and not transaction.review %}
+                        <a href="/review/{{ transaction.id }}" class="btn" style="margin-top:10px;">📝 إضافة تقييم</a>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% for review in reviews %}
+                <div class="review-item">
+                    <strong>{{ review.buyer.username }}</strong>
+                    <span style="color:#FFD700;">
+                        {% for i in range(review.rating) %}★{% endfor %}
+                        {% for i in range(5 - review.rating) %}☆{% endfor %}
+                    </span>
+                    <br>
+                    <span style="color:#A8A8C8;">{{ review.comment or 'لا يوجد تعليق' }}</span>
+                    <br>
+                    <small style="color:#666;">{{ review.created_at.strftime('%Y-%m-%d') }}</small>
+                </div>
+            {% else %}
+                <p style="color:#666;">لا توجد تقييمات بعد</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

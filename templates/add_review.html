@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>إضافة تقييم</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #0F0E1A; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background: #1A1735; padding: 40px; border-radius: 10px; max-width: 500px; width: 100%; }
+        h1 { text-align: center; margin-bottom: 30px; color: #FFD700; }
+        label { display: block; margin: 15px 0 5px; color: #A8A8C8; }
+        input, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #0F0E1A; color: white; }
+        textarea { min-height: 80px; resize: vertical; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #FFD700; color: #0F0E1A; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #F0A500; }
+        .flash { padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
+        .flash.success { background: #00C897; color: white; }
+        .flash.error { background: #FF6B6B; color: white; }
+        .link { text-align: center; margin-top: 15px; color: #A8A8C8; }
+        .link a { color: #FFD700; text-decoration: none; }
+        .stars-input { display: flex; gap: 10px; font-size: 30px; margin: 10px 0; }
+        .stars-input label { cursor: pointer; color: #666; transition: 0.3s; }
+        .stars-input input { display: none; }
+        .stars-input input:checked + label { color: #FFD700; }
+        .stars-input label:hover { color: #FFD700; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⭐ إضافة تقييم</h1>
+        <p style="text-align:center;color:#A8A8C8;">{{ transaction.tool.name }}</p>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        
+        <form method="POST">
+            <label>التقييم</label>
+            <div class="stars-input">
+                {% for i in range(1, 6) %}
+                    <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" {% if i == 5 %}checked{% endif %}>
+                    <label for="star{{ i }}">★</label>
+                {% endfor %}
+            </div>
+            <label>تعليق (اختياري)</label>
+            <textarea name="comment" placeholder="شارك تجربتك مع الأداة..."></textarea>
+            <button type="submit" class="btn" style="margin-top:20px;">📝 إرسال التقييم</button>
+        </form>
+        <div class="link"><a href="/">← العودة للسوق</a></div>
+    </div>
+</body>
+</html>

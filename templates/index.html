@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سوق الأدوات المضمونة</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #0F0E1A; color: white; padding: 20px; }
+        .header { background: #1A1735; padding: 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .header h1 { color: #FFD700; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; background: #FFD700; color: #0F0E1A; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-outline { background: transparent; border: 1px solid #FFD700; color: #FFD700; }
+        .btn-sm { padding: 6px 14px; font-size: 13px; }
+        .flash { padding: 10px; border-radius: 8px; margin: 10px 0; }
+        .flash.success { background: #00C897; color: white; }
+        .flash.error { background: #FF6B6B; color: white; }
+        .flash.warning { background: #FFA500; color: white; }
+        .nav-links { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .tool-card { background: #1A1735; padding: 20px; border-radius: 10px; border: 1px solid #333; position: relative; }
+        .tool-card .price { color: #FFD700; font-size: 24px; }
+        .tool-card .old-price { color: #666; font-size: 16px; text-decoration: line-through; }
+        .tool-card .sale-badge { background: #FF6B6B; color: white; padding: 2px 10px; border-radius: 20px; font-size: 12px; display: inline-block; }
+        .search-filter { background: #1A1735; padding: 20px; border-radius: 10px; margin: 20px 0; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        .search-filter input, .search-filter select { padding: 10px; border-radius: 8px; border: 1px solid #333; background: #0F0E1A; color: white; }
+        .search-filter input { flex: 1; min-width: 200px; }
+        @media (max-width: 600px) { .header { flex-direction: column; align-items: stretch; } .nav-links { justify-content: center; } .search-filter { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ سوق الأدوات المضمونة</h1>
+        <div class="nav-links">
+            {% if current_user.is_authenticated %}
+                <span style="color:#A8A8C8;">مرحباً {{ current_user.username }}</span>
+                <a href="/profile" class="btn btn-outline btn-sm">👤 الملف</a>
+                {% if current_user.role == 'seller' %}
+                    <a href="/seller/dashboard" class="btn btn-sm">🏪 لوحة البائع</a>
+                {% endif %}
+                <a href="/logout" class="btn btn-outline btn-sm" style="border-color:#FF6B6B;color:#FF6B6B;">تسجيل خروج</a>
+            {% else %}
+                <a href="/login" class="btn btn-outline btn-sm">تسجيل الدخول</a>
+                <a href="/register" class="btn btn-sm">إنشاء حساب</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message|safe }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="search-filter">
+        <form method="GET" style="display:flex; flex-wrap:wrap; gap:10px; width:100%; align-items:center;">
+            <input type="text" name="search" placeholder="🔍 بحث..." value="{{ search or '' }}">
+            <select name="category">
+                <option value="all">جميع الفئات</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+            <select name="sort">
+                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>الأحدث</option>
+                <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>السعر: من الأقل</option>
+                <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>السعر: من الأعلى</option>
+                <option value="popular" {% if sort == 'popular' %}selected{% endif %}>الأكثر مبيعاً</option>
+            </select>
+            <input type="number" name="min_price" placeholder="السعر من" value="{{ min_price or '' }}" style="width:100px;">
+            <input type="number" name="max_price" placeholder="السعر إلى" value="{{ max_price or '' }}" style="width:100px;">
+            <button type="submit" class="btn btn-sm">تصفية</button>
+            <a href="/" class="btn btn-outline btn-sm">إلغاء</a>
+        </form>
+    </div>
+
+    <h2 style="margin:20px 0;">📦 الأدوات المتاحة ({{ tools|length }})</h2>
+
+    <div class="tools-grid">
+        {% for tool in tools %}
+        <div class="tool-card">
+            {% if tool.is_on_sale %}
+                <span class="sale-badge">🔥 خصم {{ tool.discount_percent|int }}%</span>
+            {% endif %}
+            <h3>{{ tool.name }}</h3>
+            <p style="color:#A8A8C8;">{{ tool.description[:100] }}...</p>
+            <div class="price">
+                {% if tool.is_on_sale %}
+                    <span class="old-price">${{ "%.2f"|format(tool.price) }}</span>
+                    ${{ "%.2f"|format(tool.final_price) }}
+                {% else %}
+                    ${{ "%.2f"|format(tool.price) }}
+                {% endif %}
+            </div>
+            <div style="color:#666;font-size:14px;">
+                👤 <a href="/seller/{{ tool.seller.id }}" style="color:#FFD700;text-decoration:none;">{{ tool.seller.username }}</a>
+                {% if tool.seller.rating > 0 %}
+                    ⭐ {{ "%.1f"|format(tool.seller.rating) }}
+                {% endif %}
+            </div>
+            <div style="color:#666;font-size:12px;">👁️ {{ tool.views }} | 🛒 {{ tool.sales_count }} مبيعات</div>
+            <a href="/tool/{{ tool.id }}" class="btn btn-sm" style="margin-top:10px;display:inline-block;">عرض الأداة</a>
+        </div>
+        {% else %}
+        <p style="color:#A8A8C8;grid-column:1/-1;text-align:center;padding:40px;">لا توجد أدوات متاحة حالياً.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>
