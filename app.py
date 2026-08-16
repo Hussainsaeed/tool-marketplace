@@ -14,7 +14,7 @@ app = Flask(__name__)
 app.secret_key = 'SUPER_SECRET_KEY_2026_CHANGE_ME'
 
 # ===== قاعدة البيانات =====
-app.config['SQLALCHEMY_DATABASE_URI'] =  os.environ.get('DATABASE_URL', 'sqlite:///marketplace.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///marketplace.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # ===== إعدادات الملفات =====
@@ -514,16 +514,16 @@ def buy_tool(tool_id):
     create_notification(
         user_id=seller.id,
         title='🛒 تم شراء منتجك!',
-        message=f'قام {current_user.username} بشراء "{tool.name}" مقابل ${"%.2f"|format(final_price)}',
+        message=f'قام {current_user.username} بشراء "{tool.name}" مقابل ${final_price:.2f}',
         type='sale',
         link=f'/tool/{tool.id}'
     )
     
     flash(f'''
     ✅ تم شراء الأداة!
-    💰 المبلغ: ${"%.2f"|format(final_price)}
-    🏢 عمولة المنصة (25%): ${"%.2f"|format(commission)}
-    👤 حصة البائع (75%): ${"%.2f"|format(seller_share)}
+    💰 المبلغ: ${final_price:.2f}
+    🏢 عمولة المنصة (25%): ${commission:.2f}
+    👤 حصة البائع (75%): ${seller_share:.2f}
     🔑 عنوان البائع: {seller.trust_wallet_address or 'لم يضف عنواناً'}
     ⏳ الأموال محتجزة في نظام الوساطة حتى تأكيد الاستلام
     ''', 'success')
